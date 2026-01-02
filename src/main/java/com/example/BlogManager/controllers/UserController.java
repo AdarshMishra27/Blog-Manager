@@ -32,7 +32,7 @@ public class UserController {
 
             if (savedUser.getRecommendedUsernames() == null) {
                 System.out.println("User registered with the username given: " + savedUser.getUserId());
-                return new ResponseEntity<>(new ApiResponseWrapper<>(LocalDateTime.now(), HttpStatus.CREATED.value(), null, "Successfully Created!", savedUser), HttpStatusCode.valueOf(HttpStatus.CREATED.value()));
+                return new ResponseEntity<>(new ApiResponseWrapper<>(LocalDateTime.now(), HttpStatus.CREATED.value(), "Successfully Created!", null, savedUser), HttpStatusCode.valueOf(HttpStatus.CREATED.value()));
             } else {
                 String message = "user can't be created with the given username";
                 System.out.println(message);
@@ -48,7 +48,7 @@ public class UserController {
     public ResponseEntity<ApiResponseWrapper<String>> login(@RequestBody UserDTO loginRequest) throws Exception {
         String token = userService.login(loginRequest);
         System.out.println("generated token for the username: " + loginRequest.getUserId() + " is = " + token);
-        return new ResponseEntity<>(new ApiResponseWrapper<>(LocalDateTime.now(), HttpStatus.OK.value(), null, "token generated", token), HttpStatusCode.valueOf(200));
+        return new ResponseEntity<>(new ApiResponseWrapper<>(LocalDateTime.now(), HttpStatus.OK.value(), "token generated", null, token), HttpStatusCode.valueOf(200));
     }
 
     @GetMapping("/{userId}")
