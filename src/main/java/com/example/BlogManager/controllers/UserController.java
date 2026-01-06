@@ -2,7 +2,7 @@ package com.example.BlogManager.controllers;
 
 import com.example.BlogManager.dto.UserDTO;
 import com.example.BlogManager.exceptions.ResourceNotFoundCustomException;
-import com.example.BlogManager.objects.User;
+import com.example.BlogManager.objects.UserEntity;
 import com.example.BlogManager.response.ApiResponseWrapper;
 import com.example.BlogManager.services.UserService;
 import jakarta.validation.Valid;
@@ -53,7 +53,7 @@ public class UserController {
 
     @GetMapping("/{userId}")
     public ResponseEntity<ApiResponseWrapper<UserDTO>> getUserById(@PathVariable String userId) {
-        Optional<User> user = userService.findById(userId);
+        Optional<UserEntity> user = userService.findById(userId);
         if (user.isPresent()) {
             String message = "Fetched user with id: {}" + userId;
             System.out.println(message);

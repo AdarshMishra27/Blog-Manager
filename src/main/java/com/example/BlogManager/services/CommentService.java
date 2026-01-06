@@ -3,7 +3,7 @@ package com.example.BlogManager.services;
 import com.example.BlogManager.exceptions.ResourceNotFoundCustomException;
 import com.example.BlogManager.objects.Blog;
 import com.example.BlogManager.objects.Comment;
-import com.example.BlogManager.objects.User;
+import com.example.BlogManager.objects.UserEntity;
 import com.example.BlogManager.repositories.CommentRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;
@@ -21,23 +21,23 @@ public class CommentService {
     }
 
     //create
-    public Comment save(Comment comment, HttpServletRequest request, Long blogId) {
+    public Comment save(Comment comment, String username, Long blogId) {
         Blog blog = blogService.findById(blogId);
-        User user = blogService.fetchUserDetailsFromDB(request);
-        comment.setUser(user);
+        UserEntity userEntity = blogService.fetchUserDetailsFromDB(username);
+        comment.setUserEntity(userEntity);
         comment.setBlog(blog);
         return commentRepository.save(comment);
     }
 
-    public Comment deleteBlog(Long commentId, HttpServletRequest request) {
-        User user = blogService.fetchUserDetailsFromDB(request);
+    public Comment deleteBlog(Long commentId, String username) {
+        UserEntity userEntity = blogService.fetchUserDetailsFromDB(username);
         Optional<Comment> checkComment = commentRepository.findById(commentId);
         if (checkComment.isEmpty()) throw new ResourceNotFoundCustomException("no comment with id: " + commentId);
 
 
         //comment can be deleted either by the creator of the blog post OR by the creator of the comment only
-        if (checkComment.get().getBlog().getUser().getUserId().equals(user.getUserId()) //creator of the blog post check
-                || checkComment.get().getUser().getUserId().equals(user.getUserId()) // creator of the comment check
+        if (checkComment.get().getBlog().getUserEntity().getUserId().equals(userEntity.getUserId()) //creator of the blog post check
+                || checkComment.get().getUserEntity().getUserId().equals(userEntity.getUserId()) // creator of the comment check
         ) {
             return checkComment.map(getComment -> {
                 commentRepository.deleteById(commentId);

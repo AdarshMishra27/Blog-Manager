@@ -2,11 +2,10 @@ package com.example.BlogManager.services;
 
 import com.example.BlogManager.exceptions.ResourceNotFoundCustomException;
 import com.example.BlogManager.objects.Blog;
-import com.example.BlogManager.objects.User;
+import com.example.BlogManager.objects.UserEntity;
 import com.example.BlogManager.objects.UserType;
 import com.example.BlogManager.repositories.BlogRepository;
 import com.example.BlogManager.repositories.UserRepository;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -29,19 +28,17 @@ public class BlogService {
     }
 
     //TODO ->>> this method should be inside @UserService
-    public User fetchUserDetailsFromDB(HttpServletRequest request) { // username or userId is same across the app
-        //request has username who is login in to the app
-        String userId = (String) request.getAttribute("username");
+    public UserEntity fetchUserDetailsFromDB(String userId) { // username or userId is same across the app
         System.out.println("current user -> " + userId);
         //now using the username complete user details are fetched from the db and then added in the blog
-        Optional<User> user = userRepository.findByUserId(userId);
+        Optional<UserEntity> user = userRepository.findByUserId(userId);
         return user.get();
     }
 
     //create
-    public Blog save(Blog blog, HttpServletRequest request) {
-        User user = fetchUserDetailsFromDB(request);
-        blog.setUser(user);
+    public Blog save(Blog blog, String username) {
+        UserEntity userEntity = fetchUserDetailsFromDB(username);
+        blog.setUserEntity(userEntity);
         return blogRepository.save(blog);
     }
 
@@ -56,14 +53,14 @@ public class BlogService {
     }
 
     //find by both blogId and Userid
-    public Optional<Blog> findById(Long id, HttpServletRequest request) {
-        User user = fetchUserDetailsFromDB(request);
-        return blogRepository.findByUserIdAndId(user.getId(), id);
+    public Optional<Blog> findById(Long id, String username) {
+        UserEntity userEntity = fetchUserDetailsFromDB(username);
+        return blogRepository.findByUserEntityIdAndId(userEntity.getId(), id);
     }
 
-    public Map<String, Object> findAll(int page, int size, String sortBy, HttpServletRequest request) {
-        User user = fetchUserDetailsFromDB(request);
-        if (user.getUserType() != UserType.ADMIN) { // Only ADMIN can access all the blogs
+    public Map<String, Object> findAll(int page, int size, String sortBy, String username) {
+        UserEntity userEntity = fetchUserDetailsFromDB(username);
+        if (userEntity.getUserType() != UserType.ADMIN) { // Only ADMIN can access all the blogs
             return null;
         }
 
@@ -80,13 +77,13 @@ public class BlogService {
     }
 
 
-    public Blog deleteBlog(Long id, HttpServletRequest request) {
-        User user = fetchUserDetailsFromDB(request);
+    public Blog deleteBlog(Long id, String username) {
+        UserEntity userEntity = fetchUserDetailsFromDB(username);
         Optional<Blog> checkBlog = blogRepository.findById(id);
         if (checkBlog.isEmpty()) throw new ResourceNotFoundCustomException("no blog with id: " + id);
 
         // Only ADMIN can delete a blog or the user who created it
-        if (user.getUserType() == UserType.ADMIN || checkBlog.get().getUser().getUserId().equals(user.getUserId())) {
+        if (userEntity.getUserType() == UserType.ADMIN || checkBlog.get().getUserEntity().getUserId().equals(userEntity.getUserId())) {
             return checkBlog.map(getBlog -> {
                 blogRepository.deleteById(id);
                 System.out.println("blog with id " + id + " deleted");
@@ -98,13 +95,13 @@ public class BlogService {
     }
 
     //complete update
-    public Blog updateBlog(Long id, Blog updatedBlog, HttpServletRequest request) {
+    public Blog updateBlog(Long id, Blog updatedBlog, String username) {
         //only USER who created the blog can update the blog
-        User user = fetchUserDetailsFromDB(request);
+        UserEntity userEntity = fetchUserDetailsFromDB(username);
         Optional<Blog> checkBlog = blogRepository.findById(id);
         if (checkBlog.isEmpty()) throw new ResourceNotFoundCustomException("no blog with id: " + id);
 
-        if (checkBlog.get().getUser().getUserId().equals(user.getUserId())) {
+        if (checkBlog.get().getUserEntity().getUserId().equals(userEntity.getUserId())) {
             return checkBlog
                     .map(blog -> {
                         blog.setTitle(updatedBlog.getTitle());
@@ -121,13 +118,13 @@ public class BlogService {
     }
 
     //partial update
-    public Blog partialUpdate(Long id, Map<String, Object> updates, HttpServletRequest request) {
+    public Blog partialUpdate(Long id, Map<String, Object> updates, String username) {
         //only USER who created the blog can partially update the blog
-        User user = fetchUserDetailsFromDB(request);
+        UserEntity userEntity = fetchUserDetailsFromDB(username);
         Optional<Blog> checkBlog = blogRepository.findById(id);
         if (checkBlog.isEmpty()) throw new ResourceNotFoundCustomException("no blog with id: " + id);
 
-        if (checkBlog.get().getUser().getUserId().equals(user.getUserId())) {
+        if (checkBlog.get().getUserEntity().getUserId().equals(userEntity.getUserId())) {
 
             updates.forEach((fieldName, value) -> {
                 try {
