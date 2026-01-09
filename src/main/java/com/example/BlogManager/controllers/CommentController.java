@@ -3,6 +3,7 @@ package com.example.BlogManager.controllers;
 import com.example.BlogManager.objects.Comment;
 import com.example.BlogManager.response.ApiResponseWrapper;
 import com.example.BlogManager.services.CommentService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/comment")
 public class CommentController {
@@ -24,8 +26,8 @@ public class CommentController {
     @PostMapping("/{blogId}")
     public ResponseEntity<ApiResponseWrapper<Comment>> createBlog(@RequestBody Comment comment, @AuthenticationPrincipal UserDetails userDetails, @PathVariable Long blogId) {
         Comment savedComment = commentsService.save(comment, userDetails.getUsername(), blogId);
-        System.out.println("created -> savedComment " + savedComment.getId());
-
+//        System.out.println("created -> savedComment " + savedComment.getId());
+        log.info("Created comment with id: {}", savedComment.getId());
         return new ResponseEntity<>(new ApiResponseWrapper<>(LocalDateTime.now(), HttpStatus.CREATED.value(), "Successfully Created!", null, savedComment), HttpStatusCode.valueOf(HttpStatus.CREATED.value()));
     }
 
@@ -41,7 +43,8 @@ public class CommentController {
         }
 
         String message = "Deleted user with id: " + commentId;
-        System.out.println(message);
+//        System.out.println(message);
+        log.info(message);
         return new ResponseEntity<>(new ApiResponseWrapper<>(LocalDateTime.now(), HttpStatus.NO_CONTENT.value(), message, null, null), HttpStatusCode.valueOf(200));
 
     }

@@ -4,6 +4,7 @@ import com.example.BlogManager.exceptions.ResourceNotFoundCustomException;
 import com.example.BlogManager.objects.Blog;
 import com.example.BlogManager.response.ApiResponseWrapper;
 import com.example.BlogManager.services.BlogService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/blog")
 public class BlogController {
@@ -29,7 +31,8 @@ public class BlogController {
     @PostMapping("/")
     public ResponseEntity<ApiResponseWrapper<Blog>> createBlog(@RequestBody Blog blog, @AuthenticationPrincipal UserDetails userDetails) {
         Blog savedBlog = blogService.save(blog, userDetails.getUsername());
-        System.out.println("created -> savedBlog " + savedBlog.getId());
+//        System.out.println("created -> savedBlog " + savedBlog.getId());
+        log.info("created -> savedBlog " + savedBlog.getId());
 
         return new ResponseEntity<>(new ApiResponseWrapper<>(LocalDateTime.now(), HttpStatus.CREATED.value(), "Successfully Created!", null, savedBlog), HttpStatusCode.valueOf(HttpStatus.CREATED.value()));
     }
@@ -39,11 +42,13 @@ public class BlogController {
     public ResponseEntity<ApiResponseWrapper<Blog>> getBlog(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails) {
         return blogService.findById(id, userDetails.getUsername()).map(blog -> {
             String message = "Fetched blog with id: {}" + id;
-            System.out.println(message);
+//            System.out.println(message);
+            log.info(message);
             return new ResponseEntity<>(new ApiResponseWrapper<>(LocalDateTime.now(), HttpStatus.OK.value(), message, null, blog), HttpStatusCode.valueOf(200));
         }).orElseGet(() -> {
             String message = "Blog not found with id: {}" + id + " and under the user logged in " + userDetails.getUsername();
-            System.out.println(message);
+//            System.out.println(message);
+            log.error(message);
             throw new ResourceNotFoundCustomException(message);
         });
     }
@@ -78,7 +83,8 @@ public class BlogController {
         }
 
         String message = "Deleted user with id: {}" + id;
-        System.out.println(message);
+//        System.out.println(message);
+        log.warn(message);
         return new ResponseEntity<>(new ApiResponseWrapper<>(LocalDateTime.now(), HttpStatus.NO_CONTENT.value(), null, message, null), HttpStatusCode.valueOf(200));
 
     }
@@ -94,7 +100,8 @@ public class BlogController {
             return new ResponseEntity<>(response, HttpStatus.valueOf(401));
         }
         String message = "Fully updated blog with id: {}" + id;
-        System.out.println(message);
+//        System.out.println(message);
+        log.info(message);
         return ResponseEntity.ok(new ApiResponseWrapper<>(LocalDateTime.now(), HttpStatus.OK.value(), null, message, blog));
 
     }
@@ -111,7 +118,8 @@ public class BlogController {
             return new ResponseEntity<>(response, HttpStatus.valueOf(401));
         }
         String message = "Blog partially updated blog with id: {}" + id;
-        System.out.println(message);
+//        System.out.println(message);
+        log.info(message);
         return ResponseEntity.ok(new ApiResponseWrapper<>(LocalDateTime.now(), HttpStatus.OK.value(), null, message, blog));
 
     }
