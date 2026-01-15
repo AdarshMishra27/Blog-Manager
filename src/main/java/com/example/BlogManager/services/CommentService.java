@@ -5,7 +5,6 @@ import com.example.BlogManager.objects.Blog;
 import com.example.BlogManager.objects.Comment;
 import com.example.BlogManager.objects.UserEntity;
 import com.example.BlogManager.repositories.CommentRepository;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -29,7 +28,7 @@ public class CommentService {
         return commentRepository.save(comment);
     }
 
-    public Comment deleteBlog(Long commentId, String username) {
+    public Comment deleteComment(Long commentId, String username) {
         UserEntity userEntity = blogService.fetchUserDetailsFromDB(username);
         Optional<Comment> checkComment = commentRepository.findById(commentId);
         if (checkComment.isEmpty()) throw new ResourceNotFoundCustomException("no comment with id: " + commentId);

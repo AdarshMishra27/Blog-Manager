@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -33,4 +32,9 @@ public class Blog {
     @OneToMany(mappedBy = "blog", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference(value = "blog-comments")  // This manages serialization of the child list
     private List<Comment> comments;
+
+    public Blog(String title, String content) {
+        this.title = title;
+        this.content = content;
+    }
 }

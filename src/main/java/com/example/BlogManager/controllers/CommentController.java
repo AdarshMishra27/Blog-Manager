@@ -33,9 +33,9 @@ public class CommentController {
 
     //comment can be deleted either by the creator of the blog post OR by the creator of the comment only
     @DeleteMapping("/{commentId}")
-    public ResponseEntity<ApiResponseWrapper<Void>> deleteBlog(@PathVariable Long commentId, @AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<ApiResponseWrapper<Void>> deleteComment(@PathVariable Long commentId, @AuthenticationPrincipal UserDetails userDetails) {
 
-        Comment comment = commentsService.deleteBlog(commentId, userDetails.getUsername());
+        Comment comment = commentsService.deleteComment(commentId, userDetails.getUsername());
         if (comment == null) {
             ApiResponseWrapper<Void> response = new ApiResponseWrapper<>(LocalDateTime.now(), HttpStatus.UNAUTHORIZED.value(), "comment can be deleted either by the creator of the blog post or by the creator of the comment only", null, null);
 

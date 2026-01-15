@@ -23,4 +23,10 @@ public class UserDTO {
 
     private List<String> recommendedUsernames;
 
+    public UserDTO(String name, String userId, String password, UserType userType) {
+        this.name = name;
+        this.userId = userId;
+        this.password = password;
+        this.userType = userType;
+    }
 }

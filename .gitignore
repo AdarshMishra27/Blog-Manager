@@ -31,3 +31,10 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Ignore the specific logs directory
+/logs/
+
+# Ignore all log files in the project (optional but recommended)
+*.log
+*.log.gz

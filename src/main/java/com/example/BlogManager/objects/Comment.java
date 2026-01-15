@@ -2,11 +2,13 @@ package com.example.BlogManager.objects;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 
 @Table(name = "comments")
 @Entity
 @Data
+@Builder
 public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
