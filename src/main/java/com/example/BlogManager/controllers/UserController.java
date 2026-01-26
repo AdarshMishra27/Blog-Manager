@@ -5,6 +5,9 @@ import com.example.BlogManager.exceptions.ResourceNotFoundCustomException;
 import com.example.BlogManager.objects.UserEntity;
 import com.example.BlogManager.response.ApiResponseWrapper;
 import com.example.BlogManager.services.UserService;
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -15,6 +18,12 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+@SecurityScheme(
+        name = "bearerAuth",
+        type = SecuritySchemeType.HTTP,
+        scheme = "bearer",
+        bearerFormat = "JWT"
+)
 @Slf4j
 @RestController
 @RequestMapping("/api/user")
@@ -57,6 +66,7 @@ public class UserController {
         return new ResponseEntity<>(new ApiResponseWrapper<>(LocalDateTime.now(), HttpStatus.OK.value(), "token generated", null, token), HttpStatusCode.valueOf(200));
     }
 
+    @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/{userId}")
     public ResponseEntity<ApiResponseWrapper<UserDTO>> getUserById(@PathVariable String userId) {
         Optional<UserEntity> user = userService.findById(userId);
