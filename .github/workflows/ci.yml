@@ -1,25 +1,37 @@
-name: Java CI with Maven
-
-on:
-  push:
-    branches: [ "main" ] # Runs every time you push to main
-  pull_request:
-    branches: [ "main" ] # Runs when someone opens a PR to main
-
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest # The "Robot" OS
+    runs-on: ubuntu-latest
+
+    # This is the "Magic" part for Databases
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: mytestdb
+        ports:
+          - 5432:5432
+        # Wait until postgres is actually ready before starting the Java build
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4 # Downloads your code to the robot
+      - uses: actions/checkout@v4
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
-          cache: maven # Speeds up future builds by caching dependencies
 
       - name: Build and Test
-        run: mvn clean verify # Compiles code AND runs your tests
+        run: mvn clean verify
+        env:
+          # Tell Spring Boot where the DB is
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/mytestdb
+          SPRING_DATASOURCE_USERNAME: user
+          SPRING_DATASOURCE_PASSWORD: password
