@@ -1,0 +1,25 @@
+name: Java CI with Maven
+
+on:
+  push:
+    branches: [ "main" ] # Runs every time you push to main
+  pull_request:
+    branches: [ "main" ] # Runs when someone opens a PR to main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest # The "Robot" OS
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4 # Downloads your code to the robot
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven # Speeds up future builds by caching dependencies
+
+      - name: Build and Test
+        run: mvn clean verify # Compiles code AND runs your tests
