@@ -1,56 +1,70 @@
-name: Java CI with Postgres
+name: CI/CD Pipeline
 
 on:
   push:
     branches: [ "main" ]
+    tags: [ "v*.*.*" ] # Triggers when you push a tag like v1.0.0
   pull_request:
     branches: [ "main" ]
 
 jobs:
+  # JOB 1: Continuous Integration (The same as before)
   build-and-test:
     runs-on: ubuntu-latest
-
-    # This spins up a real Postgres database inside the GitHub runner
     services:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_USER: testuser
-          POSTGRES_PASSWORD: testpassword
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
           POSTGRES_DB: testdb
-        ports:
-          - 5432:5432
-        # This ensures the DB is fully "ready" before the Java steps start
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
+        ports: [5432:5432]
+        options: --health-cmd pg_isready --health-interval 10s
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
           cache: maven
-
-      - name: Build and Test with Maven
-        # These env variables override your app's properties for the test run
+      - name: Test
+        run: mvn clean verify
         env:
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/testdb
-          SPRING_DATASOURCE_USERNAME: testuser
-          SPRING_DATASOURCE_PASSWORD: testpassword
-        run: mvn clean verify
+          SPRING_DATASOURCE_USERNAME: user
+          SPRING_DATASOURCE_PASSWORD: password
 
-      - name: Notify on Failure
-        if: failure()
-        # Note: You must add DISCORD_WEBHOOK to your GitHub Repo Secrets
-        uses: rjstone/discord-webhook-notify@v1
+  # JOB 2: Continuous Delivery (The New Part)
+  package-and-push:
+    needs: build-and-test # ONLY runs if tests pass
+    if: github.event_name != 'pull_request' # Don't push images for PRs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract Metadata (Versioning)
+        id: meta
+        uses: docker/metadata-action@v5
         with:
-          severity: error
-          details: "❌ Build Failed! Check the GitHub Actions logs."
-          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/my-backend-app
+          tags: |
+            type=semver,pattern={{version}}
+            type=sha,format=short
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and Push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
